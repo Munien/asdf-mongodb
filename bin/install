@@ -13,13 +13,19 @@ install_mongo() {
   local tempfile=""
   local filename=""
   local download_url=""
+  local old_version=0
 
+  [[ "$(unify_version "$version")" < "$(unify_version "4.0")" ]] && old_version=1 || old_version=0
   [ "Linux" = "$(uname)" ] && platform="linux" || platform="osx"
   [ "x86_64" = "$(uname -m)" ] && arch="x86_64" || arch="i686"
   [ "linux" = "${platform}" ] && tempdir=$(mktemp -d asdf-mongodb.XXXX) || tempdir=$(mktemp -dt asdf-mongodb.XXXX)
 
   if [[ "linux" = "${platform}" ]]; then
-    filename="mongodb-linux-${arch}-${version}.tgz"
+    if [[ "${old_version}" -eq 1 ]]; then
+      filename="mongodb-linux-${arch}-${version}.tgz"
+    else
+      filename="mongodb-linux-${arch}-ubuntu2004-${version}.tgz"
+    fi
   else
     if [[ "$(unify_version "$version")" > "$(unify_version "4.2")" ]]; then
       filename="mongodb-macos-x86_64-${version}.tgz"
@@ -31,7 +37,12 @@ install_mongo() {
   fi
 
   tempfile="${tempdir}/${filename}"
-  download_url="https://fastdl.mongodb.org/${platform}/${filename}"
+
+  if [[ "${old_version}" -eq 1 ]]; then
+    download_url="http://downloads.mongodb.org/${platform}/${filename}"
+  else
+    download_url="https://fastdl.mongodb.org/${platform}/${filename}"
+  fi
 
   echo "download_url $download_url"
 
